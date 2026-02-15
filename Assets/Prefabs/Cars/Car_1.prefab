@@ -409,10 +409,12 @@ MonoBehaviour:
   _topSteerClamp: 8
   _sidewaysGrip: 3
   _wheelRadius: 0.35
-  _tiltAngle: 5
-  _pitchAngle: 3
-  _bodySmooth: 6
-  _verticalOffset: 0.3
+  _tiltAngleModifier: 0.1
+  _pitchAngleModifier: 0.1
+  _maxTiltAngle: 25
+  _maxPitchAngle: 20
+  _bodySmooth: 3
+  _verticalOffset: 0.08
   _verticalSpring: 250
   _verticalDamping: 20
   _maxVerticalOffset: 0.7

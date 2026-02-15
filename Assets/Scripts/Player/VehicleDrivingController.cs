@@ -27,8 +27,10 @@ public class VehicleDrivingController : MonoBehaviour
     [SerializeField] private float _wheelRadius = 0.35f;
 
     [Header("Body Lean (Input Based)")]
-    [SerializeField] private float _tiltAngle = 5f;
-    [SerializeField] private float _pitchAngle = 3f;
+    [SerializeField] private float _tiltAngleModifier = 5f;
+    [SerializeField] private float _pitchAngleModifier = 3f;
+    [SerializeField] private float _maxTiltAngle = 15f;
+    [SerializeField] private float _maxPitchAngle = 13f;
     [SerializeField] private float _bodySmooth = 6f;
 
     [Header("Body Vertical Suspension")]
@@ -44,6 +46,7 @@ public class VehicleDrivingController : MonoBehaviour
 
     private float _bodyOffsetY;
     private float _bodyVerticalVelocity;
+    private Vector3 _previousVelocity;
 
     private bool _isInputEnabled = false;
 
@@ -148,18 +151,33 @@ public class VehicleDrivingController : MonoBehaviour
 
     private void UpdateCarBody()
     {
-        if (_carBody == null) return;
-
         // Lean
-        float roll = -_currentSteerInput * _tiltAngle;
-        float pitch = -_currentMotorInput * _pitchAngle;
+        Vector3 velocityDelta = _rb.linearVelocity - _previousVelocity;
+        float lateralAccel = Vector3.Dot(velocityDelta, transform.right) / Time.fixedDeltaTime;
+        float forwardAccel = Vector3.Dot(velocityDelta, transform.forward) / Time.fixedDeltaTime;
+
+        float roll = -lateralAccel * _tiltAngleModifier; 
+        float pitch = -forwardAccel * _pitchAngleModifier;
+
+        roll = Mathf.Clamp(roll, -_maxTiltAngle, _maxTiltAngle);
+        pitch = Mathf.Clamp(pitch, -_maxPitchAngle, _maxPitchAngle);
 
         Quaternion targetRot = Quaternion.Euler(pitch, 0f, roll);
+
         _carBody.localRotation = Quaternion.Slerp(
             _carBody.localRotation,
             targetRot,
             _bodySmooth * Time.fixedDeltaTime
         );
+
+        //Debug.Log(
+        //    $"Velocity Delta: {velocityDelta}, \n" +
+        //    $"Lateral Accel: {lateralAccel}, \n" +
+        //    $"Forward Accel: {forwardAccel}, \n" +
+        //    $"Roll: {roll}, \n" +
+        //    $"Pitch: {pitch}");
+
+        _previousVelocity = _rb.linearVelocity;
 
         // Vertical suspention
         float springForce = (_verticalOffset - _bodyOffsetY) * _verticalSpring;
