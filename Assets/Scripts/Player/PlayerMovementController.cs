@@ -15,11 +15,17 @@ public class PlayerMovementController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Transform _cameraTransform;
     [SerializeField] private Animator _animator;
-    [SerializeField] private PlayerInputHandler _inputHandler;
     [SerializeField] private CharacterController _controller;
 
+    private PlayerInputHandler _inputHandler;
+    
     private Vector3 _velocity;
     private float _currentSpeed;
+
+    public void Init(PlayerInputHandler inputHandler)
+    {
+        _inputHandler = inputHandler;
+    }
 
     private void Update() 
     {

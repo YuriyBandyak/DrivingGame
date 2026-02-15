@@ -15,33 +15,23 @@ public class PlayerInputHandler : MonoBehaviour
     public void Init(InputSystem_Actions.CharacterActions characterActions)
     {
         _inputActions = characterActions;
-    }
-
-    // TODO: call init from some manager
-    private void Awake()
-    {
-        var input = new InputSystem_Actions();
-        Init(input.Character);
-        input.Character.Enable();
         _inputActions.Interact.performed += (ctx) =>
         {
-            Debug.Log("Interact performed");
             OnInteractEvent?.Invoke();
         };
+    }
 
-        _inputActions.Interact.started += (ctx) =>
+    public void Enable(bool state = true)
+    {
+        if (state)
         {
-            Debug.Log("Interact started");
-        };
+            _inputActions.Enable();
+        }
+        else
+        {
+            _inputActions.Disable();
+        }
     }
 
-    private void OnEnable()
-    {
-        _inputActions.Enable();
-    }
-
-    private void OnDisable()
-    {
-        _inputActions.Disable();
-    }
+    public void Disable() => Enable(false);
 }

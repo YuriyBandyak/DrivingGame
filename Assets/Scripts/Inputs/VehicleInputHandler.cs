@@ -18,21 +18,17 @@ public class VehicleInputHandler : MonoBehaviour
         _inputActions.ExitVehicle.performed += ctx => OnExitVehicleEvent?.Invoke();
     }
 
-    // TODO: call init from some manager
-    private void Awake()
+    public void Enable(bool state = true)
     {
-        var input = new InputSystem_Actions();
-        Init(input.Vehicle);
-        input.Vehicle.Enable();
+        if (state)
+        {
+            _inputActions.Enable();
+        }
+        else
+        {
+            _inputActions.Disable();
+        }
     }
 
-    private void OnEnable()
-    {
-        _inputActions.Enable();
-    }
-
-    private void OnDisable()
-    {
-        _inputActions.Disable();
-    }
+    public void Disable() => Enable(false);
 }

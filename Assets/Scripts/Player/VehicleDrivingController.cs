@@ -9,7 +9,6 @@ public class VehicleDrivingController : MonoBehaviour
     [SerializeField] private Transform[] _wheelMeshes;
     [SerializeField] private Transform[] _frontWheelMeshes;
     [SerializeField] private Transform _carBody;
-    [SerializeField] private VehicleInputHandler _inputHandler;
 
     [Header("Engine")]
     [SerializeField] private float _motorForce = 5000f;
@@ -38,46 +37,66 @@ public class VehicleDrivingController : MonoBehaviour
     [SerializeField] private float _verticalDamping = 20f;
     [SerializeField] private float _maxVerticalOffset = 0.7f;
 
+    private VehicleInputHandler _inputHandler;
+
     private float _currentSteerInput;
     private float _currentMotorInput;
 
     private float _bodyOffsetY;
     private float _bodyVerticalVelocity;
 
-    private void Start()
+    private bool _isInputEnabled = false;
+
+    public void Init(VehicleInputHandler inputHander)
     {
         _rb.centerOfMass = new Vector3(0f, -0.5f, 0f);
 
         _bodyOffsetY = _verticalOffset;
-        if (_carBody != null)
-        {
-            Vector3 pos = _rb.position;
-            pos.y += _bodyOffsetY;
-            _carBody.position = pos;
-        }
+        Vector3 pos = _rb.position;
+        pos.y += _bodyOffsetY;
+        _carBody.position = pos;
+
+        _inputHandler = inputHander;
+    }
+
+    public void OnInputTurnedOn()
+    {
+        _isInputEnabled = true;
+    }
+
+    public void OnInputTurnedOff()
+    {
+        _isInputEnabled = false;
     }
 
     private void FixedUpdate()
     {
-        // TODO: do not execute player dependant code if player outside
+        if (_isInputEnabled)
+        {
+            ReadInput();
 
-        ReadInput();
+            HandleMotor();
+            HandleSteering(); 
+        }
 
-        HandleMotor();
-        HandleSteering();
         ApplySidewaysGrip();
 
-        RotateWheels();
+        if (_isInputEnabled)
+        {
+            RotateWheels(); 
+        }
+
         UpdateCarBody();
     }
 
-    void ReadInput()
+
+    private void ReadInput()
     {
         _currentMotorInput = _inputHandler.Throttle;
         _currentSteerInput = _inputHandler.Steering;
     }
 
-    void HandleMotor()
+    private void HandleMotor()
     {
         if (_rb.linearVelocity.magnitude < _maxSpeed)
         {
@@ -85,7 +104,7 @@ public class VehicleDrivingController : MonoBehaviour
         }
     }
 
-    void HandleSteering()
+    private void HandleSteering()
     {
         float speed = _rb.linearVelocity.magnitude;
         if (speed < 0.05f) return;
@@ -102,14 +121,14 @@ public class VehicleDrivingController : MonoBehaviour
         _rb.MoveRotation(_rb.rotation * rotation);
     }
 
-    void ApplySidewaysGrip()
+    private void ApplySidewaysGrip()
     {
         Vector3 localVel = transform.InverseTransformDirection(_rb.linearVelocity);
         float sideForce = -localVel.x * _sidewaysGrip;
         _rb.AddForce(transform.right * sideForce, ForceMode.Acceleration);
     }
 
-    void RotateWheels()
+    private void RotateWheels()
     {
         float rotationSpeed = _rb.linearVelocity.magnitude / _wheelRadius;
 
@@ -127,7 +146,7 @@ public class VehicleDrivingController : MonoBehaviour
         }
     }
 
-    void UpdateCarBody()
+    private void UpdateCarBody()
     {
         if (_carBody == null) return;
 
