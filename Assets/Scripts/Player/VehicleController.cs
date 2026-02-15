@@ -1,4 +1,5 @@
 using Unity.Cinemachine;
+using UnityEditor;
 using UnityEngine;
 
 public class VehicleController : MonoBehaviour
@@ -7,6 +8,7 @@ public class VehicleController : MonoBehaviour
     [SerializeField] private CinemachineCamera _camera;
     [SerializeField] private EnterVehicleInteraction _enterInteraction;
     [SerializeField] private Transform _exitPoint;
+    [SerializeField] private Collider[] _vehicleColliders =new Collider[0];
 
     private VehicleInputHandler _inputHandler;
     private PlayerController _currentPlayer;
@@ -20,6 +22,7 @@ public class VehicleController : MonoBehaviour
         _drivingController.Init(inputHandler);
 
         _camera.gameObject.SetActive(false);
+        DisableInternalCollision();
     }
 
     private void HandleEnterVehicle(PlayerController controller)
@@ -55,4 +58,26 @@ public class VehicleController : MonoBehaviour
         
         _currentPlayer = null;
     }
+
+    private void DisableInternalCollision()
+    {
+        for (int i = 0; i < _vehicleColliders.Length; i++)
+        {
+            for (int j = i + 1; j < _vehicleColliders.Length; j++)
+            {
+                Physics.IgnoreCollision(_vehicleColliders[i], _vehicleColliders[j]);
+            }
+        }
+    }
+
+    #region Editor stuff
+#if UNITY_EDITOR
+    [ContextMenu("Gather all colliders")]
+    private void GatherAllColliders()
+    {
+        _vehicleColliders = GetComponentsInChildren<Collider>();
+        EditorUtility.SetDirty(this);
+    }
+#endif 
+    #endregion
 }
