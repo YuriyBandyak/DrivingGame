@@ -4,6 +4,8 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class VehicleDrivingController : MonoBehaviour
 {
+    private const int TRACTION_MINIMAL_WHEELS_COUNT = 2;
+
     [Header("References")]
     [SerializeField] private Rigidbody _rb;
     [SerializeField] private Transform[] _wheelMeshes;
@@ -39,7 +41,11 @@ public class VehicleDrivingController : MonoBehaviour
     [SerializeField] private float _verticalDamping = 20f;
     [SerializeField] private float _maxVerticalOffset = 0.7f;
 
+    [Header("Other")]
+    [SerializeField] private Vector3 _centerOfMass;
+
     private VehicleInputHandler _inputHandler;
+    private LayerMask _groundLayer;
 
     private float _currentSteerInput;
     private float _currentMotorInput;
@@ -52,7 +58,7 @@ public class VehicleDrivingController : MonoBehaviour
 
     public void Init(VehicleInputHandler inputHander)
     {
-        _rb.centerOfMass = new Vector3(0f, -0.5f, 0f);
+        _rb.centerOfMass = _centerOfMass;
 
         _bodyOffsetY = _verticalOffset;
         Vector3 pos = _rb.position;
@@ -60,6 +66,8 @@ public class VehicleDrivingController : MonoBehaviour
         _carBody.position = pos;
 
         _inputHandler = inputHander;
+
+        _groundLayer = ExtensionMethods.GetInverseLayerMask("Vehicle");
     }
 
     public void OnInputTurnedOn()
@@ -74,19 +82,25 @@ public class VehicleDrivingController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_isInputEnabled)
+        var groundedWheelsCount = GetGroundedWheelsCount();
+        var hasTraction = groundedWheelsCount >= TRACTION_MINIMAL_WHEELS_COUNT;
+
+        if (_isInputEnabled && hasTraction)
         {
             ReadInput();
 
             HandleMotor();
-            HandleSteering(); 
+            HandleSteering();
         }
 
-        ApplySidewaysGrip();
+        if (hasTraction)
+        {
+            ApplySidewaysGrip();
+        }
 
         if (_isInputEnabled)
         {
-            RotateWheels(); 
+            RotateWheels();
         }
 
         UpdateCarBody();
@@ -156,7 +170,7 @@ public class VehicleDrivingController : MonoBehaviour
         float lateralAccel = Vector3.Dot(velocityDelta, transform.right) / Time.fixedDeltaTime;
         float forwardAccel = Vector3.Dot(velocityDelta, transform.forward) / Time.fixedDeltaTime;
 
-        float roll = -lateralAccel * _tiltAngleModifier; 
+        float roll = -lateralAccel * _tiltAngleModifier;
         float pitch = -forwardAccel * _pitchAngleModifier;
 
         roll = Mathf.Clamp(roll, -_maxTiltAngle, _maxTiltAngle);
@@ -196,5 +210,30 @@ public class VehicleDrivingController : MonoBehaviour
         Vector3 bodyPos = _rb.position;
         bodyPos.y += _bodyOffsetY;
         _carBody.position = bodyPos;
+    }
+
+    private int GetGroundedWheelsCount()
+    {
+        int _groundedWheelCount = 0;
+        float groundCheckDistance = _wheelRadius + 0.1f; // to ensure proper ground detection
+
+        for (int i = 0; i < _wheelMeshes.Length; i++)
+        {
+            Transform wheel = _wheelMeshes[i];
+
+            bool grounded = Physics.Raycast(
+                wheel.position,
+                Vector3.down,
+                groundCheckDistance,
+                _groundLayer
+            );
+
+            Debug.DrawRay(wheel.position, Vector3.down * groundCheckDistance, grounded ? Color.green : Color.red);
+
+            if (grounded)
+                _groundedWheelCount++;
+        }
+
+        return _groundedWheelCount;
     }
 }
