@@ -170,7 +170,7 @@ public class VehicleDrivingController : MonoBehaviour
         float lateralAccel = Vector3.Dot(velocityDelta, transform.right) / Time.fixedDeltaTime;
         float forwardAccel = Vector3.Dot(velocityDelta, transform.forward) / Time.fixedDeltaTime;
 
-        float roll = -lateralAccel * _tiltAngleModifier;
+        float roll = lateralAccel * _tiltAngleModifier;
         float pitch = -forwardAccel * _pitchAngleModifier;
 
         roll = Mathf.Clamp(roll, -_maxTiltAngle, _maxTiltAngle);
