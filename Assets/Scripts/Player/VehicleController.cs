@@ -17,7 +17,6 @@ public class VehicleController : MonoBehaviour
     {
         _inputHandler = inputHandler;
         _enterInteraction.OnEnterVehicleEvent += HandleEnterVehicle;
-        _inputHandler.OnExitVehicleEvent += TryHandleExitVehicle;
 
         _drivingController.Init(inputHandler);
 
@@ -39,6 +38,8 @@ public class VehicleController : MonoBehaviour
         _drivingController.OnInputTurnedOn();
         _camera.gameObject.SetActive(true);
         _currentPlayer.OnCarEntered();
+
+        _inputHandler.OnExitVehicleEvent += TryHandleExitVehicle;
     }
 
     private void TryHandleExitVehicle()
@@ -55,7 +56,8 @@ public class VehicleController : MonoBehaviour
         _drivingController.OnInputTurnedOff();
         _camera.gameObject.SetActive(false);
         _currentPlayer.OnCarExited();
-        
+
+        _inputHandler.OnExitVehicleEvent -= TryHandleExitVehicle;
         _currentPlayer = null;
     }
 

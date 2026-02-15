@@ -175,8 +175,8 @@ MonoBehaviour:
   _carBody: {fileID: 1544944695146430133}
   _motorForce: 50000
   _maxSpeed: 50
-  _maxSteerAngle: 30
-  _bottomSteerClamp: 0.2
+  _maxSteerAngle: 40
+  _bottomSteerClamp: 0.5
   _topSteerClamp: 5
   _sidewaysGrip: 4
   _wheelRadius: 0.2835
